@@ -1,18 +1,110 @@
 <template>
   <div class="my-container">
+    <!-- 已登录 -->
+    <div v-if="user" class="header user-info">
+      <div class="base-info">
+        <div class="left">
+          <van-image
+            class="avatar"
+            round
+            fit="cover"
+            :src="userInfo.photo"
+          />
+          <span class="name">{{ userInfo.name}}</span>
+        </div>
+        <div class="right">
+          <van-button size="mini" round>编辑资料</van-button>
+        </div>
+      </div>
+      <div class="data-stats">
+        <div class="data-item">
+          <span class="count">{{ userInfo.art_count}}</span>
+          <span class="text">头条</span>
+        </div>
+        <div class="data-item">
+          <span class="count">{{ userInfo.follow_count}}</span>
+          <span class="text">头条</span>
+        </div>
+        <div class="data-item">
+          <span class="count">{{ userInfo.fans_count}}</span>
+          <span class="text">头条</span>
+        </div>
+        <div class="data-item">
+          <span class="count">{{ userInfo.like_count}}</span>
+          <span class="text">头条</span>
+        </div>
+      </div>
+    </div>
     <!-- 未登录头部 -->
-    <div class="header not-login">
-      <div class="login-btn" @click="$router.push('/login')">
+    <div v-else class="header not-login">
+      <div class="login-btn" @click="$router.push({
+        name:'login',
+        query:{
+          redirect:'/my'
+        }
+      })">
         <img class="mobile-img" src="~@/assets/mobile.png" alt="" />
         <span class="text">登录 / 注册</span>
       </div>
     </div>
+    <!-- 宫格导航 -->
+    <van-grid :column-num="2" class="grid-nav mb-9" clickable>
+      <van-grid-item class="grid-item">
+        <i slot="icon" class="iconfont iconshoucang"></i>
+        <span slot="text" class="text">收藏</span>
+      </van-grid-item>
+      <van-grid-item class="grid-item">
+        <i slot="icon" class="iconfont iconlishi"></i>
+        <span slot="text" class="text">历史</span>
+      </van-grid-item>
+    </van-grid>
+    <!-- Cell 单元格 -->
+    <van-cell title="消息通知" is-link />
+    <van-cell class="mb-9" title="小智同学" is-link />
+    <van-cell v-if="user" @click='onLogout' class="logout-cell" clickable title="退出登录" is-link/>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+import { getUserInfo } from '@/api/user'
 export default {
-  name: 'MyIndex'
+  name: 'MyIndex',
+  data() {
+    return {
+      userInfo: {}
+    }
+  },
+  computed: {
+    ...mapState(['user'])
+  },
+  created(){
+    if(this.user) {
+      this.loadUserInfo()
+    }
+  },
+  methods:{
+    onLogout(){
+      this.$dialog.confirm({
+  title: '确认退出吗？',
+})
+  .then(() => {
+    this.$store.commit('setUser',null)
+  })
+  .catch((cancel) => {
+    // on cancel
+    console.log(cancel)
+  });
+    },
+    async loadUserInfo(){
+      try{
+        const {data}=await getUserInfo()
+        this.userInfo=data.data
+      }catch(err){
+        this.$toast('获取数据失败，请稍后重试')
+      }
+    }
+  }
 }
 </script>
 
@@ -88,13 +180,13 @@ export default {
   .grid-nav {
     .grid-item {
       height: 141px;
-      i.toutiao {
+      i.iconfont {
         font-size: 45px;
       }
-      .toutiao-shoucang {
+      .iconshoucang {
         color: #eb5253;
       }
-      .toutiao-lishi {
+      .iconlishi {
         color: #ff9d1d;
       }
       span.text {
