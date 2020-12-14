@@ -9,13 +9,14 @@
       <van-list
         v-model="loading"
         :finished="finished"
-        finished-text="没有更多了"
+        finished-text="请求失败，点击重新加载"
+        :error.sync="error"
         @load="onLoad"
       >
-        <van-cell
+        <article-item
           v-for="(article, index) in list"
           :key="index"
-          :title="article.title"
+          :article="article"
         />
       </van-list>
     </van-pull-refresh>
@@ -24,8 +25,13 @@
 
 <script>
 import { getArticles } from "@/api/article";
+import ArticleItem from "@/components/article-item";
+
 export default {
   name: "ArticleList",
+  components: {
+    ArticleItem,
+  },
   props: {
     channel: {
       type: Object,
@@ -48,7 +54,7 @@ export default {
       try {
         const { data } = await getArticles({
           channel_id: this.channel.id,
-          timestamp: Date.now(),
+          timestamp: this.timestamp || Date.now(),
           with_top: 1,
         });
         const { results } = data.data;
@@ -89,7 +95,7 @@ export default {
 
 <style lang="less" scoped>
 .article-list {
-    height: 79vh;
-    overflow: auto;
+  height: 79vh;
+  overflow: auto;
 }
 </style>
