@@ -9,6 +9,7 @@
         size="small"
         round
         icon="search"
+        to="/search"
         >搜索</van-button
       >
     </van-nav-bar>
@@ -17,27 +18,40 @@
     <van-tabs class="channel-tabs" v-model="active" animated swipeable>
       <van-tab :title="channel.name" v-for="channel in channels" :key="channel.id"><article-list :channel='channel'></article-list></van-tab>
       <div slot="nav-right" class="placeholder"></div>
-      <div slot="nav-right" class="hamburger-btn">
+      <div slot="nav-right" class="hamburger-btn" @click="isChannelEditShow = true">
         <i class="toutiao toutiao-gengduo"></i>
       </div>
     </van-tabs>
+     <!-- 频道编辑弹出层 -->
+    <van-popup
+      v-model="isChannelEditShow"
+      closeable
+      position="bottom"
+      close-icon-position="top-left"
+      :style="{ height: '100%' }"
+    >
+      <channel-edit :my-channels="channels" :active="active" update-active="outUpdateActive"/>
+    </van-popup>
   </div>
 </template>
 
 <script>
 import { getUserchannels } from '@/api/user'
 import ArticleList from './components/article-list'
+import ChannelEdit from './components/channel-edit'
 
 export default {
   name: "HomeIndex",
   components:{
-    ArticleList
+    ArticleList,
+    ChannelEdit
   },
   props:{},
   data(){
     return {
       active:0,
-      channels:[]
+      channels:[],
+      isChannelEditShow: false
     }
   },
   computed:{},
@@ -53,6 +67,10 @@ export default {
       } catch(err) {
         this.$toast('获取频道数据失败')
       }
+    },
+    outUpdateActive(index,isChannelEditShow=true) {
+      this.active=index
+      this.isChannelEditShow=isChannelEditShow
     }
   }
 };
