@@ -1,7 +1,7 @@
 <template>
-    <div class="search-container">
+  <div class="search-container">
     <!-- 搜索栏 -->
-    <form action="/">
+    <form action="/" class="search-form">
       <van-search
         v-model="searchText"
         show-action
@@ -9,46 +9,70 @@
         background="#3296fa"
         @search="onSearch"
         @cancel="onCancel"
-        @focus="isResultShow=false"
+        @focus="isResultShow = false"
       />
     </form>
     <search-result v-if="isResultShow" :search-text="searchText" />
-    <search-suggestion v-else-if="searchText" :search-text="searchText" @search="onSearch" />
-    <search-history v-else />
+    <search-suggestion
+      v-else-if="searchText"
+      :search-text="searchText"
+      @search="onSearch"
+    />
+    <search-history
+      v-else
+      :search-histories="searchHistories"
+      @clear-search-histories="searchHistories = []"
+      @search="onSearch"
+    />
   </div>
 </template>
 <script>
-import SearchHistory from './components/search-history'
-import SearchResult from './components/search-result.vue'
-import SearchSuggestion from './components/search-suggestion.vue'
+import SearchHistory from "./components/search-history";
+import SearchResult from "./components/search-result";
+import SearchSuggestion from "./components/search-suggestion";
 export default {
-  name: 'SearchIndex',
-   components: {
+  name: "SearchIndex",
+  components: {
     SearchHistory,
     SearchSuggestion,
-    SearchResult
+    SearchResult,
   },
   data() {
     return {
       searchText: '',
-      isResultShow: false // 控制搜索结果的展示
-    }
+      isResultShow: false, // 控制搜索结果的展示
+      searchHistories: [],
+    };
   },
   methods: {
-    onSearch (val) {
-        this.searchText=val
-      this.isResultShow=true
+    onSearch(val) {
+      this.searchText = val;
+      const index = this.searchHistories.indexOf(val);
+      if (index !== -1) {
+        this.searchHistories.splice(index, 1);
+      }
+      this.searchHistories.unshift(val);
+
+      this.isResultShow = true;
     },
-    onCancel () {
-      this.$router.back()
-    }
-  }
-}
+    onCancel() {
+      this.$router.back();
+    },
+  },
+};
 </script>
 <style lang="less" scoped>
 .search-container {
+    padding-top: 108px;
   .van-search__action {
     color: #fff;
+  }
+  .search-form {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
   }
 }
 </style>
