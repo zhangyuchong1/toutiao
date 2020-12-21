@@ -67,10 +67,11 @@
         <comment-list
           :source="article.art_id"
           @onload-success="totalCommentCount = $event.total_count"
+          @reply-click="onReplyClick"
         />
         <!-- 底部区域 -->
         <div class="article-bottom">
-          <van-button class="comment-btn" type="default" round size="small"
+          <van-button class="comment-btn" type="default" round size="small" @click="isPostShow=true"
             >写评论</van-button
           >
           <!-- 这里在 info 替换成 badge -->
@@ -89,6 +90,10 @@
           <van-icon name="share" color="#777777"></van-icon>
         </div>
         <!-- /底部区域 -->
+        <van-popup v-model="isPostShow" position="bottom">
+          <comment-post :target="article.art_id" @post-success="onPostSuccess" />
+        </van-popup>
+        <!-- 发布评论的弹出层 -->
       </div>
       <!-- /加载完成-文章详情 -->
 
@@ -107,6 +112,11 @@
       </div>
       <!-- /加载失败：其它未知错误（例如网络原因或服务端异常） -->
     </div>
+     <!-- 评论回复 -->
+    <van-popup v-model="isReplyShow" position="bottom" style="height: 100%;">
+      <comment-reply v-if="isReplyShow" :comment="currentComment" @close="isReplyShow=false" />
+    </van-popup>
+    <!-- /评论回复 -->
   </div>
 </template>
 
@@ -117,6 +127,8 @@ import FollowUser from "@/components/follow-user";
 import CollectArticle from "@/components/collect-article";
 import LikeArticle from "@/components/like-article";
 import CommentList from "./comment-list";
+import CommentPost from "./comment-post";
+import CommentReply from './comment-reply'
 
 export default {
   name: "ArticleIndex",
@@ -125,6 +137,14 @@ export default {
     CollectArticle,
     LikeArticle,
     CommentList,
+    CommentPost,
+    CommentReply
+  },
+  // 给所有的后代组件提供数据
+  provide: function() {
+    return {
+      articleId: this.articleId
+    }
   },
   props: {
     articleId: {
@@ -139,6 +159,10 @@ export default {
       errStatus: 0,
       followLoading: false, // 关注按钮的 loading 状态
       totalCommentCount: 0,
+      isPostShow:false,//控制评论的弹出状态
+      commentList:[],
+      isReplyShow: false,
+       currentComment: {}//当前回复的评论项
     };
   },
   computed: {},
@@ -179,6 +203,7 @@ export default {
           });
           console.log(images);
         };
+
       });
     },
     // async onFollow() {
@@ -201,6 +226,14 @@ export default {
     //     this.$toast(message);
     //   }
     // },
+    onPostSuccess(data) {
+      this.isPostShow=false
+      this.commentList.unshift(data.new_obj)
+    },
+    onReplyClick(comment) {
+      this.currentComment = comment
+      this.isReplyShow = true
+    }
   },
 };
 </script>

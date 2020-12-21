@@ -5,12 +5,14 @@
     finished-text="没有更多了"
     :error="error"
     error-text="加载失败请点击重试"
+    :immediate-check="false"
     @load="onLoad"
   >
-    <comment-item
+     <comment-item
       v-for="(item, index) in list"
       :key="index"
       :comment="item"
+      @reply-click="$emit('reply-click', $event)"
     />
   </van-list>
 </template>
@@ -28,10 +30,21 @@ export default {
       type: [Number, String, Object],
       required: true,
     },
+    list: {
+      type:Array,
+      default:()=>[]
+    },
+    type:{
+      type:String,
+      //自定义Prop数据验证
+      validator(value) {
+        return ['a','c'].includes(value)
+      },
+      default:'a'
+    }
   },
   data() {
     return {
-      list: [],
       loading: false,
       finished: false,
       offset: null,
@@ -46,14 +59,14 @@ export default {
     async onLoad() {
       try {
         const { data } = await getComments({
-          type: "a",
-          source: this.source,
+          type: this.type,
+          source: this.source.toString(),
           offset: this.offset,
           limit: this.limit,
         });
         const { results } = data.data;
+        this.list.push(...results)
         this.$emit("onload-success", data.data);
-        this.list.push(...results);
 
         this.loading = false;
         if (results.length) {
